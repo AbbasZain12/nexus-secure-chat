@@ -1,0 +1,17 @@
+# Dependency directories
+node_modules/
+
+# Environment variables (SECURITY RISK)
+.env
+.env.local
+
+# Build outputs
+client/dist/
+client/build/
+
+# Uploaded Media Files
+server/uploads/*
+!server/uploads/.gitkeep
+
+# OS generated files
+.DS_Store
