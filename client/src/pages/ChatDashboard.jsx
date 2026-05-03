@@ -443,7 +443,8 @@ export default function ChatDashboard() {
             <div className="flex-1 overflow-y-auto p-6 space-y-4 relative">
               {visibleMessages.map((msg) => {
                 const isMe = msg.author === user?.full_name;
-                const isFileUrl = msg.message.startsWith('http://localhost:5000/uploads/');
+                // FIXED: Use dynamic API URL for file rendering
+                const isFileUrl = msg.message.startsWith(`${API_URL}/uploads/`);
                 const isImage = isFileUrl && msg.message.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null;
                 const isDoc = isFileUrl && !isImage;
                 const isCodeBlock = msg.message === "LIVE_CODE_BLOCK";
