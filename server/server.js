@@ -24,8 +24,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// FIX 1: Dynamic CORS options to allow mobile/production domain
+const corsOptions = {
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+};
+
 const io = new Server(server, {
-  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] },
+  cors: corsOptions,
 });
 
 // Track online users with connection count (email -> count)
@@ -143,15 +150,19 @@ io.on('connection', (socket) => {
   socket.on('end_call', (room) => socket.to(room).emit('call_ended'));
 });
 
-app.use(cors());
+const PORT = process.env.PORT || 5000;
+
+// FIX 2: Apply exact CORS options to Express
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static(uploadDir)); 
 app.use('/api/auth', authRoutes);
 
-// File Upload Route
+// FIX 3: Dynamic Upload Route to support remote access
 app.post('/api/upload', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  res.json({ url: `http://localhost:5000/uploads/${req.file.filename}` });
+  const serverUrl = process.env.SERVER_URL || `http://localhost:${PORT}`;
+  res.json({ url: `${serverUrl}/uploads/${req.file.filename}` });
 });
 
 // Update Profile
@@ -210,5 +221,4 @@ app.get('/api/trust/:room_id', async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Nexus Backend running on port ${PORT}`));
