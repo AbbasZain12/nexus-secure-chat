@@ -6,6 +6,9 @@ import axios from 'axios';
 import CryptoJS from 'crypto-js';
 import Editor from '@monaco-editor/react';
 
+// Get API URL from Vite environment variables, fallback to localhost if not set (for local dev)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 const getRoomKey = (roomId) => {
   const masterSalt = "nexus_prime_2026_secure_layer";
   return CryptoJS.HmacSHA256(roomId, masterSalt).toString();
@@ -99,7 +102,8 @@ export default function ChatDashboard() {
 
   useEffect(() => {
     if (!user) return; 
-    const newSocket = io("http://localhost:5000");
+    // FIXED: Use dynamic API URL
+    const newSocket = io(API_URL);
     setSocket(newSocket);
     return () => newSocket.disconnect();
   }, [user]);
@@ -142,7 +146,8 @@ export default function ChatDashboard() {
     if (!user?.email) return;
     const fetchUsers = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/users');
+        // FIXED: Use dynamic API URL
+        const res = await axios.get(`${API_URL}/api/users`);
         setUsers(res.data.filter(u => u.email !== user.email));
       } catch (err) {}
     };
@@ -157,10 +162,12 @@ export default function ChatDashboard() {
 
     const fetchData = async () => {
       try {
-        const msgRes = await axios.get(`http://localhost:5000/api/messages/${roomId}`);
+        // FIXED: Use dynamic API URL
+        const msgRes = await axios.get(`${API_URL}/api/messages/${roomId}`);
         setMessages(msgRes.data.map(msg => ({ ...msg, message: decryptMessage(msg.message, roomId) })));
         
-        const trustRes = await axios.get(`http://localhost:5000/api/trust/${roomId}`);
+        // FIXED: Use dynamic API URL
+        const trustRes = await axios.get(`${API_URL}/api/trust/${roomId}`);
         setTrustData(trustRes.data);
       } catch (error) {}
     };
@@ -256,7 +263,8 @@ export default function ChatDashboard() {
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.put('http://localhost:5000/api/users/profile', { email: user.email, full_name: editName, avatar: user.avatar || '' });
+      // FIXED: Use dynamic API URL
+      const res = await axios.put(`${API_URL}/api/users/profile`, { email: user.email, full_name: editName, avatar: user.avatar || '' });
       const updatedUser = { ...user, ...res.data };
       localStorage.setItem('nexus_user', JSON.stringify(updatedUser)); setUser(updatedUser); setShowProfileModal(false);
     } catch (err) {}
@@ -266,10 +274,12 @@ export default function ChatDashboard() {
     const file = e.target.files[0]; if (!file) return;
     const formData = new FormData(); formData.append('file', file);
     try {
-      const res = await axios.post('http://localhost:5000/api/upload', formData);
+      // FIXED: Use dynamic API URL
+      const res = await axios.post(`${API_URL}/api/upload`, formData);
       const updatedUser = { ...user, avatar: res.data.url };
       localStorage.setItem('nexus_user', JSON.stringify(updatedUser)); setUser(updatedUser);
-      await axios.put('http://localhost:5000/api/users/profile', { email: user.email, full_name: user.full_name, avatar: res.data.url });
+      // FIXED: Use dynamic API URL
+      await axios.put(`${API_URL}/api/users/profile`, { email: user.email, full_name: user.full_name, avatar: res.data.url });
     } catch (err) {}
   };
 
@@ -332,7 +342,17 @@ export default function ChatDashboard() {
   };
 
   const sendMessage = async (e) => { e.preventDefault(); if (currentMessage.trim() !== "" && room && socket) { await emitMessage(currentMessage); setCurrentMessage(""); socket.emit("stop_typing", room); }};
-  const handleFileUpload = async (e) => { const file = e.target.files[0]; if (!file || !room) return; const formData = new FormData(); formData.append('file', file); try { const res = await axios.post('http://localhost:5000/api/upload', formData); await emitMessage(res.data.url); } catch (err) {} };
+  const handleFileUpload = async (e) => { 
+    const file = e.target.files[0]; 
+    if (!file || !room) return; 
+    const formData = new FormData(); 
+    formData.append('file', file); 
+    try { 
+      // FIXED: Use dynamic API URL
+      const res = await axios.post(`${API_URL}/api/upload`, formData); 
+      await emitMessage(res.data.url); 
+    } catch (err) {} 
+  };
   const handleLogout = () => { localStorage.clear(); if (socket) socket.disconnect(); navigate('/'); };
 
   if (!user) return null; 

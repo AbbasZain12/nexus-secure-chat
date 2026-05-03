@@ -29,7 +29,7 @@ export default function Auth() {
       : formData;
 
     try {
-      const response = await axios.post(`http://localhost:5000/api/auth${endpoint}`, payload);
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth${endpoint}`, payload);
       
       localStorage.setItem('nexus_token', response.data.token);
       localStorage.setItem('nexus_user', JSON.stringify(response.data.user));
