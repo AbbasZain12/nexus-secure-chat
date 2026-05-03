@@ -52,7 +52,7 @@ Nexus Secure Chat is a full-stack messaging application built with React, Node.j
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/AbbasZain12/nexus-secure-chat.git
+git clone https://github.com/ZainAbbas-dev/nexus-secure-chat.git
 cd nexus-secure-chat
 ```
 
@@ -70,6 +70,7 @@ PORT=5000
 DATABASE_URL=postgresql://username:password@localhost:5432/nexus
 JWT_SECRET=your_super_secret_key
 CLIENT_URL=http://localhost:5173
+SERVER_URL=http://localhost:5000
 ```
 
 > For production, replace `DATABASE_URL` with your cloud PostgreSQL URI and set `CLIENT_URL` to your frontend domain.
@@ -195,7 +196,34 @@ This project uses a hybrid deployment model to preserve full real-time functiona
 > **Note:** File uploads are stored locally in `server/uploads`. On Render, the filesystem is ephemeral and uploaded files will not persist across deploys. For production use, integrate cloud storage such as AWS S3, Cloudinary, or Vercel Blob.
 
 ---
+## Screenshots
 
+### Authentication
+**Login & Sign Up**
+![Login](screenshots/login.png)
+![Signup](screenshots/signup.png)
+
+### Main Interface
+**Dashboard & Active Chat**
+![Dashboard](screenshots/dashboard.png)
+![Chat Dashboard](screenshots/chat-dashboard.png)
+
+### Security & Identity
+**Trust Score & User Profile**
+![Trust Score Engine](screenshots/trust-score.png)
+![User Profile](screenshots/profile.png)
+
+### Real-Time Collaboration
+**Shared Whiteboard & Live Code Sync**
+![Shared Whiteboard](screenshots/shared-whiteboard.png)
+![Live Code Sync](screenshots/live-code-sync.png)
+
+### WebRTC Communications
+**Audio & Video Calls**
+![Audio Call](screenshots/audio-call.png)
+![Video Call](screenshots/video-call.png)
+
+---
 ## Contributing
 
 Contributions are welcome. Please follow the steps below:
