@@ -161,11 +161,11 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 });
 
 app.put('/api/users/profile', async (req, res) => {
-  const { email, full_name, avatar } = req.body;
+  const { email, full_name, avatar, about, status } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE users SET full_name = $1, avatar = $2 WHERE email = $3 RETURNING id, full_name, email, avatar', 
-      [full_name, avatar, email]
+      'UPDATE users SET full_name = $1, avatar = $2, about = $3, status = $4 WHERE email = $5 RETURNING id, full_name, email, avatar, about, status', 
+      [full_name, avatar, about, status, email]
     );
     res.json(result.rows[0]);
   } catch (err) { 
