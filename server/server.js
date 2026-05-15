@@ -32,23 +32,33 @@ const io = new Server(server, {
   cors: corsOptions,
 });
 
-const onlineUsers = new Map();
+const onlineUsers = new Map(); 
 
 io.on('connection', (socket) => {
   
-  // FIX: Accurate Online Status (Case-Insensitive)
+  // BULLETPROOF ONLINE STATUS
   socket.on('register_user', (userEmail) => {
     if (!userEmail) return;
     const email = userEmail.toLowerCase();
     socket.data.email = email; 
 
-    const currentCount = onlineUsers.get(email) || 0;
-    onlineUsers.set(email, currentCount + 1);
+    // Create a Set for this user if it doesn't exist
+    if (!onlineUsers.has(email)) {
+      onlineUsers.set(email, new Set());
+    }
 
-    if (currentCount === 0) {
+    const userSockets = onlineUsers.get(email);
+    const wasOffline = userSockets.size === 0;
+
+    // Add this specific browser connection ID
+    userSockets.add(socket.id);
+
+    // If they were completely offline before this, tell everyone they are online
+    if (wasOffline) {
       socket.broadcast.emit('user_online', email);
     }
 
+    // Tell the newly connected user who else is online
     socket.emit('online_users', Array.from(onlineUsers.keys()));
   });
 
@@ -56,12 +66,16 @@ io.on('connection', (socket) => {
     const email = socket.data.email;
     if (!email) return;
 
-    const count = onlineUsers.get(email);
-    if (count > 1) {
-      onlineUsers.set(email, count - 1);
-    } else {
-      onlineUsers.delete(email);
-      socket.broadcast.emit('user_offline', email);
+    const userSockets = onlineUsers.get(email);
+    if (userSockets) {
+      // Remove this specific browser connection ID
+      userSockets.delete(socket.id); 
+
+      // If they have no more active tabs/connections open, completely log them out
+      if (userSockets.size === 0) {
+        onlineUsers.delete(email);
+        socket.broadcast.emit('user_offline', email);
+      }
     }
   });
 
