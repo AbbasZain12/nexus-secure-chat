@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Mail, Lock, User, AlertCircle, Loader2 } from 'lucide-react';
+import { MessageSquare, Mail, Lock, User, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({ fullName: '', email: '', password: '' });
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState(''); // New state for success message
   const [loading, setLoading] = useState(false);
   
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function Auth() {
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
+    setSuccessMsg(''); // Clear success message when user starts typing again
   };
 
   const handleSubmit = async (e) => {
@@ -31,10 +33,19 @@ export default function Auth() {
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/auth${endpoint}`, payload);
       
-      localStorage.setItem('nexus_token', response.data.token);
-      localStorage.setItem('nexus_user', JSON.stringify(response.data.user));
-      
-      navigate('/chat');
+      if (!isLogin) {
+        // --- SIGN UP SUCCESS LOGIC ---
+        // Show success message, switch to login view, clear password/name but keep email
+        setSuccessMsg('Account created successfully! Please log in.');
+        setIsLogin(true);
+        setFormData({ ...formData, password: '', fullName: '' });
+      } else {
+        // --- LOGIN SUCCESS LOGIC ---
+        // Save tokens and navigate to dashboard
+        localStorage.setItem('nexus_token', response.data.token);
+        localStorage.setItem('nexus_user', JSON.stringify(response.data.user));
+        navigate('/chat');
+      }
 
     } catch (err) {
       setError(err.response?.data?.error || 'An error occurred. Please try again.');
@@ -56,10 +67,19 @@ export default function Auth() {
           </h2>
         </div>
 
+        {/* Error Banner */}
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 flex items-center gap-3 text-red-400 text-sm">
             <AlertCircle className="h-5 w-5 shrink-0" />
             <p>{error}</p>
+          </div>
+        )}
+
+        {/* Success Banner */}
+        {successMsg && (
+          <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-3 flex items-center gap-3 text-green-400 text-sm animate-fade-in">
+            <CheckCircle className="h-5 w-5 shrink-0" />
+            <p>{successMsg}</p>
           </div>
         )}
 
@@ -122,8 +142,10 @@ export default function Auth() {
             onClick={() => {
               setIsLogin(!isLogin);
               setError('');
+              setSuccessMsg(''); // Clear success message on manual toggle
               setFormData({ fullName: '', email: '', password: '' });
             }}
+            type="button" // Add type="button" to prevent accidental form submits
             className="text-sm text-gray-400 hover:text-white transition-colors"
           >
             {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
