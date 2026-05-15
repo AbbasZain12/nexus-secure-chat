@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Phone, PhoneOff, User as UserIcon } from 'lucide-react';
 
 export default function CallOverlay({
@@ -5,11 +6,20 @@ export default function CallOverlay({
   incomingCallData,
   endCallLocal,
   acceptCall,
-  remoteVideoRef,
   localStream,
-  localVideoRef,
+  remoteStream,
   endCallNetwork
 }) {
+  // Define the missing refs here!
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+
+  // Attach the audio/video streams to the HTML video tags
+  useEffect(() => {
+    if (localVideoRef.current && localStream) localVideoRef.current.srcObject = localStream;
+    if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
+  }, [localStream, remoteStream, callStatus]);
+
   if (callStatus === 'idle') return null;
 
   if (callStatus === 'receiving') {
